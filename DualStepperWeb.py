@@ -5,7 +5,7 @@
 # sudo pip install simple_http_server   #?
 # sudo pip3 install Adafruit_MotorHAT
 #
-# 20190529 update
+# 20190530 update
 # 
 import os
 import sys
@@ -14,7 +14,7 @@ import RPi.GPIO as GPIO          # Check it in your windows or Raspbian platform
 #import cgi                       #CGIHTTPServer CGIHTTPRequestHandler for the post
 from http.server import BaseHTTPRequestHandler, HTTPServer      # must be run python3 -m http.server   
 
-from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor, Adafruit_StepperMotor
+from Adafruit_MotorHAT import Adafruit_MotorHAT
 import time
 import atexit
 import threading
@@ -29,8 +29,8 @@ st2 = threading.Thread()
 
 myStepper1 = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
 myStepper2 = mh.getStepper(200, 2)  # 200 steps/rev, motor port #2
-myStepper1.setSpeed(60) # RPM, DC motor from 0(off) to 255(max speed), Stepper motor(usually between 60-200) 
-myStepper2.setSpeed(60) # RPM, DC motor from 0(off) to 255(max speed), Stepper motor(usually between 60-200) 
+myStepper1.setSpeed(6) # RPM, DC motor from 0(off) to 255(max speed), Stepper motor(usually between 60-200) 
+myStepper2.setSpeed(6) # RPM, DC motor from 0(off) to 255(max speed), Stepper motor(usually between 60-200) 
 
 # direction
 stepstyles = [Adafruit_MotorHAT.SINGLE, Adafruit_MotorHAT.DOUBLE, Adafruit_MotorHAT.INTERLEAVE, Adafruit_MotorHAT.MICROSTEP]
@@ -45,31 +45,23 @@ def turnOffMotors():
     mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
 
-atexit.register(turnOffMotors)   # 先註冊後執行(python離開時執行)
+atexit.register(turnOffMotors)   # 先註冊後執行(python離開時執行,防止步進電機進入卡死電流燒毀)
 
 def stepper_worker(stepper, numsteps, direction, style):
     global stop_threads
-    #print("Steppin!")
     while stop_threads:
         stepper.step(numsteps, direction, style)
-    #print("Done")
 
 stop_threads = True
-st1 = threading.Thread(target=stepper_worker, args=(myStepper1, 50, dir, stepstyles[2],))
+st1 = threading.Thread(target=stepper_worker, args=(myStepper1, 20, dir, stepstyles[2],))
 st1.start()
-st2 = threading.Thread(target=stepper_worker, args=(myStepper2, 50, dir, stepstyles[2],))
+st2 = threading.Thread(target=stepper_worker, args=(myStepper2, 20, dir, stepstyles[2],))
 st2.start()
     
 ########################################################################################
 ########################################################################################
 class MytestHTTPServer(BaseHTTPRequestHandler):
-    """ A special implementation of BaseHTTPRequestHander for reading data from
-        and control GPIO of a Raspberry Pi
-    """
     def do_HEAD(self):
-        """ do_HEAD() can be tested use curl command 
-            'curl -I http://server-ip-address:port' 
-        """
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
@@ -117,9 +109,6 @@ class MytestHTTPServer(BaseHTTPRequestHandler):
         self.wfile.write(html.format(temp[5:]).encode("utf-8"))
 
     def do_POST(self):
-        """ do_POST() can be tested using curl command 
-            'curl -d "submit=On" http://server-ip-address:port' 
-        """
         global dir,st1,st2,stop_threads
         content_length = int(self.headers['Content-Length'])    # Get the size of data
         post_data = self.rfile.read(content_length).decode("utf-8")   # Get the data
@@ -128,7 +117,7 @@ class MytestHTTPServer(BaseHTTPRequestHandler):
 
         # You now have a dictionary of the post data
         print("Command is {}".format(post_data))
-        self._redirect('/')      # Redirect back to the root url
+
         # GPIO setup
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
@@ -139,16 +128,16 @@ class MytestHTTPServer(BaseHTTPRequestHandler):
         elif post_data == 'Off':
             GPIO.output(18, GPIO.LOW)
         elif post_data == 'Hi-Speed':
-            myStepper1.setSpeed(200)
-            myStepper2.setSpeed(200)
+            myStepper1.setSpeed(15)
+            myStepper2.setSpeed(15)
 
         elif post_data == 'Med-Speed':
-            myStepper1.setSpeed(130)
-            myStepper2.setSpeed(130)
+            myStepper1.setSpeed(10)
+            myStepper2.setSpeed(10)
 
         elif post_data == 'Lo-Speed':
-            myStepper1.setSpeed(60)
-            myStepper2.setSpeed(60)
+            myStepper1.setSpeed(6)
+            myStepper2.setSpeed(6)
 
         elif post_data == 'STOP':
             stop_threads = False
@@ -161,10 +150,10 @@ class MytestHTTPServer(BaseHTTPRequestHandler):
             turnOffMotors()
             st1.join()
             st2.join()
-            time.sleep(0.3)
+            time.sleep(0.2)
 
-            myStepper1.setSpeed(300)
-            myStepper2.setSpeed(300)
+            myStepper1.setSpeed(6)
+            myStepper2.setSpeed(6)
             if dir == Adafruit_MotorHAT.FORWARD:
                 dir = Adafruit_MotorHAT.BACKWARD
             else:
@@ -172,14 +161,13 @@ class MytestHTTPServer(BaseHTTPRequestHandler):
   
             stop_threads = True
         #if not st1.isAlive():
-            st1 = threading.Thread(target=stepper_worker, args=(myStepper1, 50, dir, stepstyles[2],))
+            st1 = threading.Thread(target=stepper_worker, args=(myStepper1, 20, dir, stepstyles[2],))
             st1.start()
         #if not st2.isAlive():
-            st2 = threading.Thread(target=stepper_worker, args=(myStepper2, 50, dir, stepstyles[2],))
+            st2 = threading.Thread(target=stepper_worker, args=(myStepper2, 20, dir, stepstyles[2],))
             st2.start()
 
-        print("Command finished")
-        #self._redirect('/')      # Redirect back to the root url
+        self._redirect('/')      # Redirect back to the root url
         #self.wfile.write("You finished it".encode("utf-8"))
 
 def getIP():
