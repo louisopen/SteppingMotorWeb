@@ -20,13 +20,11 @@ import atexit
 import threading
 import random
 
-# create a default object, no changes to I2C address or frequency
-mh = Adafruit_MotorHAT()
-
 # create empty threads (these will hold the stepper 1 and 2 threads)
 st1 = threading.Thread()
 st2 = threading.Thread()
-
+# create a default object, no changes to I2C address or frequency
+mh = Adafruit_MotorHAT()
 myStepper1 = mh.getStepper(200, 1)  # 200 steps/rev, motor port #1
 myStepper2 = mh.getStepper(200, 2)  # 200 steps/rev, motor port #2
 myStepper1.setSpeed(6) # RPM, DC motor from 0(off) to 255(max speed), Stepper motor(usually between 60-200) 
@@ -40,11 +38,12 @@ dir = Adafruit_MotorHAT.FORWARD
 
 # recommended for auto-disabling motors on shutdown!
 def turnOffMotors():
+    #mh.getStepper(0, 1).run(Adafruit_MotorHAT.RELEASE)
+    #mh.getStepper(0, 2).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
-
 atexit.register(turnOffMotors)   # 先註冊後執行(python離開時執行,防止步進電機進入卡死電流燒毀)
 
 def stepper_worker(stepper, numsteps, direction, style):
