@@ -19,5 +19,6 @@
 
 #### 第二個WebPage Control案例(先安裝庫文件) 
 * WebPage 刷新網頁是停止轉動,滑軌"正整數"是正轉轉速,滑軌"負整數"是反轉轉速, 轉向改變必須先刷新一下網頁使之停止否則會造成訊號相位為正常
+* index.html源程內IP 192.168.0.x請自行修改為你自己的
 >sudo apt-get install python3-flask
 >sudo python3 ./FlaskWebStepper.py

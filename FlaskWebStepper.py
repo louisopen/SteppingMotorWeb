@@ -45,7 +45,7 @@ st2.start()
 
 @app.route("/")
 def web_interface():
-    html = open("web_interface.html")
+    html = open("index.html")
     response = html.read().replace('\n', '')
     html.close()
 
@@ -83,13 +83,15 @@ def set_speed():
         st1.start()
     else:
         myMotor1.step(20, dir, stepstyles[2])
+    myMotor1.setSpeed(abs(int(speed)))   #速度沒有"負"值, 轉動方向
+
     if not st2.isAlive():
         st2 = threading.Thread(target=stepper_worker, args=(myMotor2, 20, dir, stepstyles[2],))
         st2.start() 
     else:
         myMotor2.step(20, dir, stepstyles[2])
-    myMotor1.setSpeed(abs(int(speed)))   #速度沒有"負"值, 轉動方向
     myMotor2.setSpeed(abs(int(speed)))   #速度沒有"負"值, 轉動方向
+
     return "Received " + str(speed)
 
 
