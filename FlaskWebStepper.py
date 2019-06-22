@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #coding:utf-8
-from flask import Flask
-from flask import request
+from flask import Flask, request
+#from flask import render_template, redirect, url_for
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
 
 import time
@@ -43,6 +43,8 @@ st2 = threading.Thread(target=stepper_worker, args=(myMotor2, 20, dir, stepstyle
 st2.start()
 
 
+#@app.route("/<int:id>", methods=['GET'])
+#@app.route("/", methods=['GET'])
 @app.route("/")
 def web_interface():
     html = open("index.html")
@@ -55,13 +57,18 @@ def web_interface():
     st1.join()
     st2.join()
     return response
+    #redirect(url_for('index', user_ip=host_name))
+    #return render_template('index.html')
+    #return render_template('index.html', user_ip=host_name)
+
     
+     
 #@app.route("/set_speed", methods=['GET', 'POST'])    
 @app.route("/set_speed")
 def set_speed():
     global dir, st1, st2, stop_threads, stepstyles, stepper_worker
     speed = request.args.get("speed")   #取得網頁設定的speed"值"
-    #print ("Received " + str(speed))
+    print ("Received " + str(speed))
     if int(speed) == 0:
         stop_threads = False
         turnOffMotors()     #STOP all
