@@ -9,14 +9,14 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-#python /home/pi/stats.py &
-#jump_dir=/home/pi/SteppingMotorWeb
+#su pi
+source_dir=$PWD
 jump_dir=/home/pi
 cd $jump_dir
 #tr -d "\r" < autorun.sh > newname.sh    #if you can't cd to .... just do this command. #置入新系統時若發生此訊息
 #tr -d "\r" < autorun.sh > newname.sh    #if you got ...Syntax error: end of file unexpected (expecting "then")
-pwd
 
+#sudo python3 $jump_dir/stats.py
 sudo python3 $jump_dir/InformationSystem.py >information.txt
 sudo chmod =766 information.txt
 #sudo python3 $jump_dir/NetworkStatus.py
@@ -30,4 +30,5 @@ sudo python3 $jump_dir/reportip.py
 #sudo python3 $jump_dir/FlaskWebStepper.py
 #sudo python3 $jump_dir/WebStreaming.py
 
+cd $source_dir
 exit 0
